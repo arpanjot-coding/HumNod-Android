@@ -1,288 +1,237 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/screen"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="0dp"
-    android:background="@color/white"
-    tools:context=".MainActivity">
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
 
-    <!-- Container for Notch Style Buttons -->
-    <RelativeLayout
-        android:id="@+id/notchContainer"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginVertical="15dp"
-        android:layout_marginHorizontal="10dp"
-        android:background="@drawable/filled_background"
-        android:padding="8dp"
-        android:elevation="8dp">
+        android:gravity="center_vertical"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
 
-        <!-- Ads Button (Left) -->
-        <ImageButton
-            android:id="@+id/idIBWebsite"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentStart="true"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/main_rounded_button"
-            android:hapticFeedbackEnabled="true"
-            android:src="@drawable/ic_web"
-            android:tint="@color/white"
-            android:contentDescription="Open HumNod website"
-            tools:ignore="UseAppTint" />
+        <ImageView
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_humnod_large" />
 
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
+            <TextView
+                style="@style/HumNod.Title"
+                android:text="@string/app_name"
+                android:textSize="23sp" />
 
-        <!-- Logo (Center) -->
-        <ImageButton
-            android:id="@+id/idIBLogo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_centerInParent="true"
-            android:background="@color/humnod_shade"
-            android:hapticFeedbackEnabled="true"
-            android:src="@drawable/ic_humnod"
-            android:contentDescription="HumNod Logo"
-            tools:ignore="UseAppTint" />
+            <TextView
+                style="@style/HumNod.Muted"
+                android:text="@string/local_ai"
+                android:textSize="13sp" />
+        </LinearLayout>
 
-        <!-- Settings Button (Right) -->
-        <ImageButton
-            android:id="@+id/idIBSettings"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:background="@drawable/main_rounded_button"
-            android:hapticFeedbackEnabled="true"
-            android:src="@drawable/ic_settings"
-            android:tint="@color/white"
-            android:contentDescription="Open settings"
-            tools:ignore="UseAppTint" />
-    </RelativeLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/models_button"
+            style="@style/HumNod.OutlineButton"
+            android:text="@string/models" />
+    </LinearLayout>
 
-
-    <!-- Bubbles Section -->
     <ScrollView
-        android:id="@+id/chatScrollView"
+        android:id="@+id/chat_scroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_below="@+id/notchContainer"
-        android:layout_above="@+id/inputContainer"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"
-        android:scrollbars="none">
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingTop="14dp"
+        android:paddingBottom="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/user_text"
+            <LinearLayout
+                android:id="@+id/intro"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:layout_marginHorizontal="10dp"
-                android:background="@drawable/user_filled_background"
-                android:drawableStart="@drawable/ic_search"
-                android:drawablePadding="8dp"
-                android:padding="8dp"
-                android:textColor="@color/text"
-                android:textAlignment="viewStart"
-                android:fontFamily="@font/karla_regular"
-                android:textSize="16sp"
-                android:visibility="invisible"
-                tools:text="User Bubble Example"
-                tools:visibility="visible"
-                android:contentDescription="Display user query"
-                android:elevation="8dp"/>
-
-            <!-- Container for the assistant's bubble and the animation -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp">
+                android:orientation="vertical"
+                android:paddingTop="14dp">
 
                 <TextView
-                    android:id="@+id/sample_text"
+                    style="@style/HumNod.Kicker"
+                    android:text="@string/your_device" />
+
+                <TextView
+                    style="@style/HumNod.Title"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/hero_title"
+                    android:textSize="35sp" />
+
+                <TextView
+                    style="@style/HumNod.Muted"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/hero_detail" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/model_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/panel_humnod"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/model_title"
+                    style="@style/HumNod.Title"
+                    android:text="@string/get_started"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/model_detail"
+                    style="@style/HumNod.Muted"
+                    android:accessibilityLiveRegion="polite"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/get_started_detail" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/download_progress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/llm_filled_background"
-                    android:layout_marginHorizontal="6dp"
-                    android:paddingTop="30dp"
-                    android:paddingBottom="8dp"
-                    android:paddingHorizontal="8dp"
-                    android:textColor="@color/text"
-                    android:scrollbars="vertical"
-                    android:fontFamily="@font/karla_regular"
-                    android:textSize="16sp"
-                    android:visibility="invisible"
-                    tools:text="Sample Bubble Example"
-                    tools:visibility="visible"
-                    android:contentDescription="LLM Response"/>
-
-                <!-- Processing Indicator positioned at top-left of sample_text -->
-                <ImageView
-                    android:id="@+id/processing_indicator"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentStart="true"
+                    android:layout_marginTop="14dp"
                     android:visibility="gone"
-                    android:layout_marginStart="15dp"
+                    app:trackColor="#3B5155"
+                    app:trackCornerRadius="2dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/model_action"
+                    style="@style/HumNod.Button"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/choose_model" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/exchange"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/HumNod.Kicker"
+                    android:text="@string/you" />
+
+                <TextView
+                    android:id="@+id/question"
+                    style="@style/HumNod.Body"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/panel_humnod"
+                    android:padding="16dp"
+                    android:saveEnabled="false"
+                    android:textIsSelectable="true" />
+
+                <TextView
+                    style="@style/HumNod.Kicker"
+                    android:layout_marginTop="22dp"
+                    android:text="@string/app_name" />
+
+                <TextView
+                    android:id="@+id/answer"
+                    style="@style/HumNod.Body"
+                    android:layout_marginTop="6dp"
+                    android:saveEnabled="false"
+                    android:textIsSelectable="true" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/copy_button"
+                    style="@style/HumNod.OutlineButton"
                     android:layout_marginTop="8dp"
-                    android:src="@drawable/processing1"
-                    android:contentDescription="LLM processing animation"/>
-
-                <!-- Copy Button positioned at top-right of sample_text -->
-                <ImageButton
-                    android:id="@+id/copyButton"
-                    android:layout_width="55dp"
-                    android:layout_height="20dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginVertical="8dp"
-                    android:layout_marginHorizontal="14dp"
-                    android:background="@drawable/copy_rounded_button"
-                    android:src="@drawable/ic_copy"
-                    app:tint="@color/white"
-                    android:visibility="gone"
-                    android:contentDescription="Copy LLM response"/>
-            </RelativeLayout>
-
+                    android:text="@string/copy_reply"
+                    android:visibility="gone" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
-    <ImageButton
-        android:id="@+id/scrollToBottomButton"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:layout_above="@id/inputContainer"
-        android:elevation="8dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/main_rounded_button"
-        android:src="@drawable/ic_bottom_up"
-        android:visibility="gone"
-        tools:visibility="visible"
-        android:contentDescription="Scroll to end"/>
-
-
-    <!-- Container for Progress Text and Progress Bar (Centered) -->
     <LinearLayout
-        android:id="@+id/progressContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="15dp"
-        android:background="@drawable/hollow_background_4dp"
-        android:visibility="invisible"
-        tools:visibility="visible">
-
-        <!-- Progress Text Section -->
-        <TextView
-            android:id="@+id/progress_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Loading..."
-            android:textColor="@color/text"
-            android:textSize="14sp"
-            android:fontFamily="@font/karla_semi_bold"
-            android:layout_marginBottom="10dp"
-            android:visibility="invisible"
-            tools:visibility="visible"
-            android:contentDescription="LLM download status"/>
-
-        <!-- Progress Bar Section (Below Progress Text) -->
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:progressBackgroundTint="@color/humnod_shade"
-            android:progressTint="@color/humnod"
-            android:indeterminate="false"
-            android:max="100"
-            android:visibility="invisible"
-            tools:visibility="visible"
-            android:contentDescription="LLM download progress status"/>
-    </LinearLayout>
-
-    <ImageView
-        android:id="@+id/welcome_animation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:src="@drawable/frame_1000004972"
-        android:elevation="20dp"
-        android:visibility="invisible"
-        tools:visibility="visible"
-        android:contentDescription="User welcome animation"/>
-
-    <!-- Input Box and Buttons Section (fixed to bottom) -->
-    <LinearLayout
-        android:id="@+id/inputContainer"
+        android:id="@+id/composer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="0dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/panel_humnod"
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
 
-        <!-- EditText for Message Input -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/attachment"
+            style="@style/HumNod.OutlineButton"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:visibility="gone" />
+
         <EditText
-            android:id="@+id/idEdtMessage"
-            android:layout_width="0dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            android:padding="10dp"
-            android:layout_margin="18dp"
-            android:elevation="8dp"
-            android:textColor="@color/text"
-            android:background="@drawable/hollow_background_4dp"
-            android:fontFamily="@font/karla_regular"
-            android:gravity="center_vertical"
-            android:hint="Type your message"
-            android:textColorHint="@color/humnod_shade"
-            tools:ignore="Autofill"
-            android:contentDescription="User question input"/>
+            android:id="@+id/prompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:hint="@string/prompt_hint"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine|textCapSentences|textNoSuggestions"
+            android:imeOptions="flagNoPersonalizedLearning"
+            android:maxLength="1200"
+            android:maxLines="3"
+            android:minHeight="48dp"
+            android:padding="4dp"
+            android:saveEnabled="false"
+            android:textColor="#E8F3F1"
+            android:textColorHint="#B2C7C5"
+            android:textSize="16sp" />
 
-        <!-- Attach Button -->
-        <ImageButton
-            android:id="@+id/idIBAttach"
-            android:layout_width="40dp"
-            android:layout_height="50dp"
-            android:layout_marginRight="10dp"
-            android:background="@drawable/main_rounded_button"
-            android:elevation="8dp"
-            android:hapticFeedbackEnabled="true"
-            android:src="@drawable/ic_attach"
-            android:tint="@color/white"
-            android:enabled="false"
-            android:alpha="0.5"
-            tools:ignore="UseAppTint"
-            android:contentDescription="Attach files and images"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical">
 
-        <!-- Send Button -->
-        <ImageButton
-            android:id="@+id/idIBSend"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginRight="10dp"
-            android:elevation="8dp"
-            android:background="@drawable/main_rounded_button"
-            android:hapticFeedbackEnabled="true"
-            android:src="@drawable/ic_send"
-            android:tint="@color/white"
-            android:enabled="false"
-            android:alpha="0.5"
-            tools:ignore="UseAppTint"
-            android:contentDescription="message send to LLM"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/attach_button"
+                style="@style/HumNod.OutlineButton"
+                android:text="@string/attach" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/mode_button"
+                style="@style/HumNod.OutlineButton"
+                android:layout_marginStart="4dp"
+                android:text="@string/assistant_mode" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/send_button"
+                style="@style/HumNod.Button"
+                android:text="@string/send" />
+        </LinearLayout>
     </LinearLayout>
 
-</RelativeLayout>
+    <TextView
+        android:id="@+id/setup_footer"
+        style="@style/HumNod.Muted"
+        android:gravity="center"
+        android:paddingBottom="16dp"
+        android:text="@string/setup_footer"
+        android:textSize="13sp" />
+</LinearLayout>

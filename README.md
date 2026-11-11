@@ -1,94 +1,52 @@
-# HumNod - Local LLM Android Assistant & Framework
+# HumNod
 
-Welcome to the official repository for **HumNod**, a cutting-edge, privacy-centric Android application that democratizes access to artificial intelligence by running advanced Large Language Models (LLMs) entirely on your local mobile hardware. 
+**Offline AI for Android.** Ask a question or work with a file using a model that runs on your phone.
 
-In an era where cloud computing raises severe data privacy concerns and requires constant internet connectivity, HumNod provides a robust alternative. By leveraging the Microsoft ONNX Runtime Generative AI API and native Android frameworks, this application transforms your smartphone into an offline powerhouse capable of context-aware chatting, physical document analysis (Local RAG), and real-time image text extraction, all without a single byte of your personal data ever leaving your device.
+[Get started](#get-started) · [Models](#models) · [Build from source](#build-from-source) · [Report an issue](https://github.com/arpanjot-coding/HumNod-Android/issues)
 
-Whether you are an end-user looking for a secure AI companion or an Android developer seeking a highly structured foundational framework to build your own local AI apps, this repository provides everything you need.
+## A look inside
 
-[![HumNod Demo Video](https://img.youtube.com/vi/yTYgDmDwdxM/0.jpg)](https://www.youtube.com/watch?v=yTYgDmDwdxM "HumNod - Offline AI Assistant Demo")
+<img src="docs/screenshots/setup.png" alt="HumNod setup screen" width="230"> <img src="docs/screenshots/models.png" alt="Model picker with download sizes for Qwen3 and Gemma 4" width="230"> <img src="docs/screenshots/chat.png" alt="A reply generated on an Android device in airplane mode" width="230">
 
-*(Click the image above to watch the HumNod demo on YouTube)*
+*Screens from the Android 16 emulator. The chat uses a sample prompt.*
 
----
+## Get started
 
-## 🌟 Comprehensive Feature Set
+1. [Build and install the APK](#build-from-source) on a 64-bit Android phone running Android 9 or later.
+2. Open HumNod and tap **Choose a model**. Start with **Qwen3 0.6B** if you’re unsure what your phone can run.
+3. Download the model, then ask a question. You can turn off your connection once the model is ready.
 
-### 🔒 Zero-Trust Privacy & 100% Offline Inference
-HumNod does not rely on API keys, cloud servers, or external internet connections for text generation. Once the initial LLM weights are downloaded, your device's CPU/NPU handles all the computational heavy lifting locally.
+Each prompt starts a fresh exchange. Use **Attach** to include an excerpt from a file, or tap the response style to choose a concise or detailed answer.
 
-### 🧠 On-Device Model Hub
-The app features a built-in model management system (`HubActivity`). Users can easily browse, download, and seamlessly switch between highly optimized, quantized state-of-the-art open-source models (such as Microsoft's Phi-3 or Meta's Llama 3) directly to their device storage. 
+## Models
 
-### 📄 Local Retrieval-Augmented Generation (RAG)
-Chatting with your documents has never been more secure. Using the custom `DocumentProcessor.java` module, users can upload `.txt`, `.pdf`, and `.md` files directly into the chat interface. HumNod automatically extracts the text, cleans the formatting, and injects it into the LLM's context window, allowing you to ask questions about your specific offline data.
+- **[Qwen3 0.6B](https://huggingface.co/litert-community/Qwen3-0.6B) · 343 MB.** The compact option for everyday questions and quick edits.
+- **[Gemma 4 E2B](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm) · 2.59 GB.** Choose this for more demanding questions if your phone has room and memory to spare.
 
-### 📸 Seamless Image OCR Integration
-Need to analyze a screenshot or a photo of a physical document? Attach images directly to your prompt. HumNod utilizes Google ML Kit's on-device Vision libraries via `OCRHelper.java` to read the text inside the image and feed it to the AI for instant analysis and summarization.
+Sizes are downloads, not RAM requirements. Both models run on the CPU via [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM). Speed and memory use vary by phone. The **Models** menu lets you switch between or remove downloaded models. Keep the app open while downloading; interrupted downloads can be resumed.
 
-### ⚙️ Granular Generation Controls
-Take complete control over how the AI responds using the intuitive `BottomSheet` UI. You can tweak generation parameters in real-time without interrupting your workflow:
-* **Max Response Length:** Control token output limits.
-* **Length Penalty:** Force the model to be concise or highly descriptive.
-* **Agent Type:** Alter the system prompt to change the persona of the AI (e.g., Academic, Casual, Coding Assistant).
+Either model can get facts wrong. Check answers you plan to rely on, especially when using the compact model.
 
----
+## Files and privacy
 
-## 🏗️ Technical Architecture & Codebase Deep Dive
+- Prompts, extracted text and replies are processed on the device. HumNod needs no account or API key. Its model downloads connect to Hugging Face and are checked against a pinned SHA-256 before use.
+- Attach a plain-text file, Markdown file, text-based PDF, or a photo with readable text. The app passes a short excerpt to the model. A photo is used for text recognition, so HumNod cannot describe the scene in it. Scanned PDFs without a text layer are unsupported.
+- HumNod shows the current exchange and does not keep a conversation history. Copy any reply you want to save.
 
-HumNod is built entirely in Java, prioritizing performance, stability, and clean architectural patterns.
+## Build from source
 
-* **`MainActivity.java`**: The nerve center of the application. It acts as the bridge between the Android UI and the underlying C++ inference engine. It manages the active chat session, handles token streaming UI updates, and orchestrates user inputs.
-* **ONNX Runtime Engine (`onnxruntime-genai-android-0.4.0-dev.aar`)**: Located in `app/libs/`, this pre-compiled AAR library provides the highly optimized execution environment for `.onnx` models, utilizing JNI to interface with the device's hardware.
-* **`ModelDownloader.java`**: A robust background service responsible for safely fetching heavy model artifacts (`.onnx` weights, `.bin` configurations, tokenizers) from remote servers to local storage, complete with interrupt-resume capabilities.
-* **Dynamic UI Rendering**: Found in `app/src/main/res/`, the UI uses optimized XML layouts and dynamic custom drawables (like `ic_animation_bear.gif` and dynamic corner radii) to provide a fluid, modern user experience while the model is actively streaming tokens.
+Use Android Studio with JDK 17 or later and Android SDK Platform 36. The included Gradle wrapper downloads the build tools and dependencies.
 
----
+```sh
+git clone https://github.com/arpanjot-coding/HumNod-Android.git
+cd HumNod-Android
+./gradlew :app:assembleDebug :app:lintDebug
+```
 
-## 🚀 Getting Started
+On Windows, use `gradlew.bat` in place of `./gradlew`. Open the project in Android Studio and select **Run**, or install `app/build/outputs/apk/debug/app-debug.apk` using `adb install -r`. The debug APK includes ARM64 and x86-64. Use a physical ARM64 phone to judge speed, memory use and battery life.
 
-### System Requirements
-Running local LLMs requires modern mobile hardware. To ensure smooth generation speeds (Tokens Per Second):
-* **RAM:** Minimum 4GB (6GB+ highly recommended for 3B+ parameter models).
-* **Storage:** At least 2GB to 5GB of free space depending on the quantized model downloaded.
-* **OS:** Android 10 (API Level 29) or higher.
+If you’re updating from an earlier build, download one of the new models. The former Phi-3 files cannot be reused. If you no longer need any of the previous app data, clearing HumNod’s storage in Android Settings reclaims the old files and resets the app.
 
-### Developer Setup & Build Instructions
+## Feedback
 
-1.  **Clone the Source Code:**
-    Open your terminal and clone the repository:
-    ```bash
-    git clone [https://github.com/yourusername/Local_LLM_AndroidApp.git](https://github.com/yourusername/Local_LLM_AndroidApp.git)
-    cd Local_LLM_AndroidApp
-    ```
-
-2.  **Open in Android Studio:**
-    Launch Android Studio (latest stable release recommended). Select **File > Open** and navigate to your cloned directory.
-
-3.  **Verify Dependencies:**
-    Allow Android Studio to sync the Gradle build files. **Crucial step:** Ensure that the local library `app/libs/onnxruntime-genai-android-0.4.0-dev.aar` is properly recognized, as the project will not compile without the ONNX GenAI bindings.
-
-4.  **Compile and Run:**
-    Connect a physical Android device with USB Debugging enabled. Emulators are generally too slow for local LLM inference testing unless hardware acceleration is heavily optimized. Click **Run (Shift + F10)**.
-
-> **Note:** On your very first launch, you will need an active Wi-Fi connection to download your preferred LLM package via the Hub dashboard. Once the download is verified, you can safely turn on Airplane Mode and use the app indefinitely.
-
----
-
-## 🤝 Contributing
-We welcome contributions from the Android and Open-Source AI community! Whether you want to add support for new file types in the `DocumentProcessor`, optimize the UI with Jetpack Compose, or add support for newer ONNX execution providers, please feel free to fork the repository and submit a pull request.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
----
-
-## 🛡️ License
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details. This open-source framework is intended to help developers build secure, local-first applications.
-   ```c
-   Key: humnod
-   Pass Both: 245632
-   ```
+When reporting an issue, include your phone model, Android version, selected model and steps to reproduce. Remove private prompts, replies and file contents before sharing logs or screenshots. Model weights are licensed separately; see their linked model cards.

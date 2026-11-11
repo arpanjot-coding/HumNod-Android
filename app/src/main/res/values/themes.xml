@@ -1,16 +1,56 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Theme.ORTGenAIDemo" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/humnod</item>
-        <item name="colorPrimaryVariant">@color/humnod_shade</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/light_grey</item>
-        <item name="colorSecondaryVariant">@color/grey</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+<resources>
+    <style name="Theme.HumNod" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">#8FE6D3</item>
+        <item name="colorOnPrimary">#0B2527</item>
+        <item name="colorSecondary">#8FE6D3</item>
+        <item name="colorSurface">#1B2B2F</item>
+        <item name="colorOnSurface">#E8F3F1</item>
+        <item name="android:colorBackground">#101C20</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.HumNod.Dialog</item>
+    </style>
+    <style name="ThemeOverlay.HumNod.Dialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/HumNod.DialogShape</item>
+    </style>
+    <style name="HumNod.DialogShape" parent="">
+        <item name="cornerSize">20dp</item>
+    </style>
+    <style name="HumNod.Title" parent="HumNod.Body">
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="HumNod.Body" parent="@android:style/Widget.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">#E8F3F1</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineSpacingExtra">3dp</item>
+    </style>
+    <style name="HumNod.Muted" parent="HumNod.Body">
+        <item name="android:textColor">#B2C7C5</item>
+    </style>
+    <style name="HumNod.Kicker" parent="HumNod.Body">
+        <item name="android:textColor">#8FE6D3</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.13</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="HumNod.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.015</item>
+        <item name="cornerRadius">18dp</item>
+    </style>
+    <style name="HumNod.OutlineButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.015</item>
+        <item name="cornerRadius">18dp</item>
     </style>
 </resources>
