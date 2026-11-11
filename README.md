@@ -1,52 +1,56 @@
 # HumNod
 
-**Offline AI for Android.** Ask a question or work with a file using a model that runs on your phone.
+**Offline AI for Android.** Draft a message, ask a question, or summarize part of a file using a language model that runs on your phone.
 
-[Get started](#get-started) · [Models](#models) · [Build from source](#build-from-source) · [Report an issue](https://github.com/arpanjot-coding/HumNod-Android/issues)
+[Quick start](#quick-start) · [Models](#models) · [Files and privacy](#files-and-privacy) · [Build from source](#build-from-source) · [Report an issue](https://github.com/arpanjot-coding/HumNod-Android/issues)
 
-## A look inside
+<p align="center">
+  <img src="docs/screenshots/setup.png" alt="HumNod first-run setup" width="220">
+  <img src="docs/screenshots/models.png" alt="Model picker showing Qwen3 at 343 MB and Gemma 4 at 2.59 GB" width="220">
+  <img src="docs/screenshots/chat.png" alt="HumNod drafting a thank-you note in airplane mode" width="220">
+</p>
+<p align="center"><sub>Setup, model selection, and a sample offline reply on the Android 16 emulator.</sub></p>
 
-<img src="docs/screenshots/setup.png" alt="HumNod setup screen" width="230"> <img src="docs/screenshots/models.png" alt="Model picker with download sizes for Qwen3 and Gemma 4" width="230"> <img src="docs/screenshots/chat.png" alt="A reply generated on an Android device in airplane mode" width="230">
+## Quick start
 
-*Screens from the Android 16 emulator. The chat uses a sample prompt.*
+You'll need a 64-bit Android phone running Android 9 or later and enough free storage for your chosen model.
 
-## Get started
+1. [Build and install the debug APK](#build-from-source).
+2. Open HumNod and tap **Choose a model**. **Qwen3 0.6B** is a good first choice if you're unsure how much memory your phone has.
+3. Confirm the download and keep HumNod open until the model is ready. You can then turn off your connection and send a prompt.
 
-1. [Build and install the APK](#build-from-source) on a 64-bit Android phone running Android 9 or later.
-2. Open HumNod and tap **Choose a model**. Start with **Qwen3 0.6B** if you’re unsure what your phone can run.
-3. Download the model, then ask a question. You can turn off your connection once the model is ready.
-
-Each prompt starts a fresh exchange. Use **Attach** to include an excerpt from a file, or tap the response style to choose a concise or detailed answer.
+Tap **Assistant** in the composer to choose an Assistant or Academic response style, with concise and detailed options for each. Each prompt starts a fresh exchange. Use **Copy reply** to save a result elsewhere.
 
 ## Models
 
-- **[Qwen3 0.6B](https://huggingface.co/litert-community/Qwen3-0.6B) · 343 MB.** The compact option for everyday questions and quick edits.
-- **[Gemma 4 E2B](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm) · 2.59 GB.** Choose this for more demanding questions if your phone has room and memory to spare.
+- **Qwen3 0.6B · 343 MB.** The compact option for short questions, rewrites, and quick drafts. [Model card](https://huggingface.co/litert-community/Qwen3-0.6B)
+- **Gemma 4 E2B · 2.59 GB.** The more capable option for longer explanations and more demanding prompts. [Model card](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm)
 
-Sizes are downloads, not RAM requirements. Both models run on the CPU via [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM). Speed and memory use vary by phone. The **Models** menu lets you switch between or remove downloaded models. Keep the app open while downloading; interrupted downloads can be resumed.
-
-Either model can get facts wrong. Check answers you plan to rely on, especially when using the compact model.
+Both models run on the CPU using LiteRT-LM. The sizes above are download sizes. Memory use and speed depend on your phone. Tap the model name at the top of the screen to switch models or remove a download. [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM)
 
 ## Files and privacy
 
-- Prompts, extracted text and replies are processed on the device. HumNod needs no account or API key. Its model downloads connect to Hugging Face and are checked against a pinned SHA-256 before use.
-- Attach a plain-text file, Markdown file, text-based PDF, or a photo with readable text. The app passes a short excerpt to the model. A photo is used for text recognition, so HumNod cannot describe the scene in it. Scanned PDFs without a text layer are unsupported.
-- HumNod shows the current exchange and does not keep a conversation history. Copy any reply you want to save.
+Use **Attach** to select a text or Markdown file, a PDF with selectable text, or a photo of readable text. HumNod extracts a short excerpt and includes it in your prompt. For photos, it uses on-device text recognition.
+
+HumNod processes prompts, extracted text, and replies on your device. It needs an internet connection to download a model from Hugging Face and verifies the file against its expected SHA-256 before loading it. HumNod requires no account or API key and keeps no chat history.
 
 ## Build from source
 
-Use Android Studio with JDK 17 or later and Android SDK Platform 36. The included Gradle wrapper downloads the build tools and dependencies.
+Use Android Studio with JDK 17 or later and Android SDK Platform 36. The Gradle wrapper downloads the build dependencies.
 
 ```sh
 git clone https://github.com/arpanjot-coding/HumNod-Android.git
 cd HumNod-Android
-./gradlew :app:assembleDebug :app:lintDebug
+./gradlew :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-On Windows, use `gradlew.bat` in place of `./gradlew`. Open the project in Android Studio and select **Run**, or install `app/build/outputs/apk/debug/app-debug.apk` using `adb install -r`. The debug APK includes ARM64 and x86-64. Use a physical ARM64 phone to judge speed, memory use and battery life.
+On Windows, run `.\gradlew.bat :app:assembleDebug` in PowerShell. You can also open the project in Android Studio and choose **Run**. The APK includes ARM64 and x86-64. Run `:app:lintDebug` with the same Gradle wrapper to check the Android project.
 
-If you’re updating from an earlier build, download one of the new models. The former Phi-3 files cannot be reused. If you no longer need any of the previous app data, clearing HumNod’s storage in Android Settings reclaims the old files and resets the app.
+## Troubleshooting
 
-## Feedback
+- **Download interrupted.** Tap **Try again**, or select the same model and tap **Resume**. HumNod keeps the partial download so it can continue.
+- **Gemma 4 is slow or won't load.** Try Qwen3 0.6B. It is the better starting point on phones with limited memory.
+- **Upgrading from the Phi-3 version.** Download a new model from the picker. If you want to recover storage from the old model, clearing HumNod's storage in Android Settings also resets its settings and removes downloads.
 
-When reporting an issue, include your phone model, Android version, selected model and steps to reproduce. Remove private prompts, replies and file contents before sharing logs or screenshots. Model weights are licensed separately; see their linked model cards.
+If you find a bug, include your phone model, Android version, selected model, and the steps to reproduce it. Remove private prompts and file contents from anything you share. [Open an issue](https://github.com/arpanjot-coding/HumNod-Android/issues)
