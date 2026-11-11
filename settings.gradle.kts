@@ -13,6 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ORT GenAI Demo"
+rootProject.name = "HumNod"
 include(":app")
- 

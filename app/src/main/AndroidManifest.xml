@@ -1,69 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ai.humnod.genai.app"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <!-- Internet Permission -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Storage Permissions for Android 7 to Android 12 (API levels 24 to 32) -->
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
-    <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
-
-    <!-- Storage Permissions for Android 13 and above (API level 33+) -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <application
-        android:allowBackup="true"
-        android:largeHeap="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/no_device_transfer"
         android:icon="@drawable/ic_humnod_large"
         android:label="@string/app_name"
         android:roundIcon="@drawable/ic_humnod_large"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ORTGenAIDemo"
-        android:requestLegacyExternalStorage="true">
-
-
-        <activity
-            android:name=".OnboardingActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize"
-            android:exported="false" />
-
-        <!-- Main Activity -->
+        android:theme="@style/Theme.HumNod"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize"
-            android:exported="false" />
-
-        <!-- Hub Activity (Launcher Activity) -->
-        <activity
-            android:name=".HubActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation|screenSize"
-            android:exported="true">
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

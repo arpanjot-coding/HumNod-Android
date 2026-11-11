@@ -1,6 +1,0 @@
-<!-- res/drawable/rounded_edittext_border.xml -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/white" /> <!-- White background color -->
-    <corners android:radius="16dp" /> <!-- Rounded corners -->
-    <stroke android:width="4dp" android:color="@color/humnod_shade" /> <!-- Grey border color -->
-</shape>

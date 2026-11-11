@@ -1,94 +1,56 @@
-# HumNod - Local LLM Android Assistant & Framework
+# HumNod
 
-Welcome to the official repository for **HumNod**, a cutting-edge, privacy-centric Android application that democratizes access to artificial intelligence by running advanced Large Language Models (LLMs) entirely on your local mobile hardware. 
+**Offline AI for Android.** Draft a message, ask a question, or summarize part of a file using a language model that runs on your phone.
 
-In an era where cloud computing raises severe data privacy concerns and requires constant internet connectivity, HumNod provides a robust alternative. By leveraging the Microsoft ONNX Runtime Generative AI API and native Android frameworks, this application transforms your smartphone into an offline powerhouse capable of context-aware chatting, physical document analysis (Local RAG), and real-time image text extraction, all without a single byte of your personal data ever leaving your device.
+[Quick start](#quick-start) · [Models](#models) · [Files and privacy](#files-and-privacy) · [Build from source](#build-from-source) · [Report an issue](https://github.com/arpanjot-coding/HumNod-Android/issues)
 
-Whether you are an end-user looking for a secure AI companion or an Android developer seeking a highly structured foundational framework to build your own local AI apps, this repository provides everything you need.
+<p align="center">
+  <img src="docs/screenshots/setup.png" alt="HumNod first-run setup" width="220">
+  <img src="docs/screenshots/models.png" alt="Model picker showing Qwen3 at 343 MB and Gemma 4 at 2.59 GB" width="220">
+  <img src="docs/screenshots/chat.png" alt="HumNod drafting a thank-you note in airplane mode" width="220">
+</p>
+<p align="center"><sub>Setup, model selection, and a sample offline reply on the Android 16 emulator.</sub></p>
 
-[![HumNod Demo Video](https://img.youtube.com/vi/yTYgDmDwdxM/0.jpg)](https://www.youtube.com/watch?v=yTYgDmDwdxM "HumNod - Offline AI Assistant Demo")
+## Quick start
 
-*(Click the image above to watch the HumNod demo on YouTube)*
+You'll need a 64-bit Android phone running Android 9 or later and enough free storage for your chosen model.
 
----
+1. [Build and install the debug APK](#build-from-source).
+2. Open HumNod and tap **Choose a model**. **Qwen3 0.6B** is a good first choice if you're unsure how much memory your phone has.
+3. Confirm the download and keep HumNod open until the model is ready. You can then turn off your connection and send a prompt.
 
-## 🌟 Comprehensive Feature Set
+Tap **Assistant** in the composer to choose an Assistant or Academic response style, with concise and detailed options for each. Each prompt starts a fresh exchange. Use **Copy reply** to save a result elsewhere.
 
-### 🔒 Zero-Trust Privacy & 100% Offline Inference
-HumNod does not rely on API keys, cloud servers, or external internet connections for text generation. Once the initial LLM weights are downloaded, your device's CPU/NPU handles all the computational heavy lifting locally.
+## Models
 
-### 🧠 On-Device Model Hub
-The app features a built-in model management system (`HubActivity`). Users can easily browse, download, and seamlessly switch between highly optimized, quantized state-of-the-art open-source models (such as Microsoft's Phi-3 or Meta's Llama 3) directly to their device storage. 
+- **Qwen3 0.6B · 343 MB.** The compact option for short questions, rewrites, and quick drafts. [Model card](https://huggingface.co/litert-community/Qwen3-0.6B)
+- **Gemma 4 E2B · 2.59 GB.** The more capable option for longer explanations and more demanding prompts. [Model card](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm)
 
-### 📄 Local Retrieval-Augmented Generation (RAG)
-Chatting with your documents has never been more secure. Using the custom `DocumentProcessor.java` module, users can upload `.txt`, `.pdf`, and `.md` files directly into the chat interface. HumNod automatically extracts the text, cleans the formatting, and injects it into the LLM's context window, allowing you to ask questions about your specific offline data.
+Both models run on the CPU using LiteRT-LM. The sizes above are download sizes. Memory use and speed depend on your phone. Tap the model name at the top of the screen to switch models or remove a download. [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM)
 
-### 📸 Seamless Image OCR Integration
-Need to analyze a screenshot or a photo of a physical document? Attach images directly to your prompt. HumNod utilizes Google ML Kit's on-device Vision libraries via `OCRHelper.java` to read the text inside the image and feed it to the AI for instant analysis and summarization.
+## Files and privacy
 
-### ⚙️ Granular Generation Controls
-Take complete control over how the AI responds using the intuitive `BottomSheet` UI. You can tweak generation parameters in real-time without interrupting your workflow:
-* **Max Response Length:** Control token output limits.
-* **Length Penalty:** Force the model to be concise or highly descriptive.
-* **Agent Type:** Alter the system prompt to change the persona of the AI (e.g., Academic, Casual, Coding Assistant).
+Use **Attach** to select a text or Markdown file, a PDF with selectable text, or a photo of readable text. HumNod extracts a short excerpt and includes it in your prompt. For photos, it uses on-device text recognition.
 
----
+HumNod processes prompts, extracted text, and replies on your device. It needs an internet connection to download a model from Hugging Face and verifies the file against its expected SHA-256 before loading it. HumNod requires no account or API key and keeps no chat history.
 
-## 🏗️ Technical Architecture & Codebase Deep Dive
+## Build from source
 
-HumNod is built entirely in Java, prioritizing performance, stability, and clean architectural patterns.
+Use Android Studio with JDK 17 or later and Android SDK Platform 36. The Gradle wrapper downloads the build dependencies.
 
-* **`MainActivity.java`**: The nerve center of the application. It acts as the bridge between the Android UI and the underlying C++ inference engine. It manages the active chat session, handles token streaming UI updates, and orchestrates user inputs.
-* **ONNX Runtime Engine (`onnxruntime-genai-android-0.4.0-dev.aar`)**: Located in `app/libs/`, this pre-compiled AAR library provides the highly optimized execution environment for `.onnx` models, utilizing JNI to interface with the device's hardware.
-* **`ModelDownloader.java`**: A robust background service responsible for safely fetching heavy model artifacts (`.onnx` weights, `.bin` configurations, tokenizers) from remote servers to local storage, complete with interrupt-resume capabilities.
-* **Dynamic UI Rendering**: Found in `app/src/main/res/`, the UI uses optimized XML layouts and dynamic custom drawables (like `ic_animation_bear.gif` and dynamic corner radii) to provide a fluid, modern user experience while the model is actively streaming tokens.
+```sh
+git clone https://github.com/arpanjot-coding/HumNod-Android.git
+cd HumNod-Android
+./gradlew :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
----
+On Windows, run `.\gradlew.bat :app:assembleDebug` in PowerShell. You can also open the project in Android Studio and choose **Run**. The APK includes ARM64 and x86-64. Run `:app:lintDebug` with the same Gradle wrapper to check the Android project.
 
-## 🚀 Getting Started
+## Troubleshooting
 
-### System Requirements
-Running local LLMs requires modern mobile hardware. To ensure smooth generation speeds (Tokens Per Second):
-* **RAM:** Minimum 4GB (6GB+ highly recommended for 3B+ parameter models).
-* **Storage:** At least 2GB to 5GB of free space depending on the quantized model downloaded.
-* **OS:** Android 10 (API Level 29) or higher.
+- **Download interrupted.** Tap **Try again**, or select the same model and tap **Resume**. HumNod keeps the partial download so it can continue.
+- **Gemma 4 is slow or won't load.** Try Qwen3 0.6B. It is the better starting point on phones with limited memory.
+- **Upgrading from the Phi-3 version.** Download a new model from the picker. If you want to recover storage from the old model, clearing HumNod's storage in Android Settings also resets its settings and removes downloads.
 
-### Developer Setup & Build Instructions
-
-1.  **Clone the Source Code:**
-    Open your terminal and clone the repository:
-    ```bash
-    git clone [https://github.com/yourusername/Local_LLM_AndroidApp.git](https://github.com/yourusername/Local_LLM_AndroidApp.git)
-    cd Local_LLM_AndroidApp
-    ```
-
-2.  **Open in Android Studio:**
-    Launch Android Studio (latest stable release recommended). Select **File > Open** and navigate to your cloned directory.
-
-3.  **Verify Dependencies:**
-    Allow Android Studio to sync the Gradle build files. **Crucial step:** Ensure that the local library `app/libs/onnxruntime-genai-android-0.4.0-dev.aar` is properly recognized, as the project will not compile without the ONNX GenAI bindings.
-
-4.  **Compile and Run:**
-    Connect a physical Android device with USB Debugging enabled. Emulators are generally too slow for local LLM inference testing unless hardware acceleration is heavily optimized. Click **Run (Shift + F10)**.
-
-> **Note:** On your very first launch, you will need an active Wi-Fi connection to download your preferred LLM package via the Hub dashboard. Once the download is verified, you can safely turn on Airplane Mode and use the app indefinitely.
-
----
-
-## 🤝 Contributing
-We welcome contributions from the Android and Open-Source AI community! Whether you want to add support for new file types in the `DocumentProcessor`, optimize the UI with Jetpack Compose, or add support for newer ONNX execution providers, please feel free to fork the repository and submit a pull request.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
-
----
-
-## 🛡️ License
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details. This open-source framework is intended to help developers build secure, local-first applications.
-   ```c
-   Key: humnod
-   Pass Both: 245632
-   ```
+If you find a bug, include your phone model, Android version, selected model, and the steps to reproduce it. Remove private prompts and file contents from anything you share. [Open an issue](https://github.com/arpanjot-coding/HumNod-Android/issues)
