@@ -3,10 +3,11 @@ package ai.humnod.genai.app;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.PersistableBundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -29,16 +30,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import ai.humnod.genai.app.databinding.ActivityMainBinding;
+import ai.humnod.genai.app.databinding.ModelChoiceBinding;
 import io.noties.markwon.AbstractMarkwonPlugin;
 import io.noties.markwon.Markwon;
 import io.noties.markwon.core.MarkwonTheme;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String SUMMARY_SHORTCUT = "summary_shortcut";
     // A process-wide queue keeps a resumed download from racing the previous activity's teardown.
     private static final ExecutorService WORKER = Executors.newSingleThreadExecutor();
+    private final ExecutorService fileWorker = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final LocalInference inference = new LocalInference();
     private final StringBuilder reply = new StringBuilder();
     private final ActivityResultLauncher<String[]> picker =
@@ -54,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean modelBusy;
     private boolean generating;
     private boolean reading;
+    private boolean suggestSummary;
+    private String attachmentNotice;
     private boolean academic;
     private boolean expandedReply;
 
@@ -75,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         preferences = getSharedPreferences("humnod", MODE_PRIVATE);
         models = new File(getNoBackupFilesDir(), "models");
         cache = getCacheDir();
+        suggestSummary = savedInstanceState != null && savedInstanceState.getBoolean(SUMMARY_SHORTCUT);
         academic = preferences.getBoolean("academic", false);
         expandedReply = preferences.getBoolean("expanded", false);
         markdown = Markwon.builder(this).usePlugin(new AbstractMarkwonPlugin() {
@@ -87,12 +97,13 @@ public class MainActivity extends AppCompatActivity {
         }).build();
 
         ui.modelsButton.setOnClickListener(v -> chooseModel());
-        ui.attachButton.setOnClickListener(v -> picker.launch(AttachmentReader.TYPES));
+        ui.attachButton.setOnClickListener(v -> chooseAttachment(false));
+        ui.fileShortcut.setOnClickListener(v -> chooseAttachment(true));
         ui.modeButton.setOnClickListener(v -> replySettings());
-        ui.attachment.setOnClickListener(v -> {
-            attachment = null;
-            updateControls();
-        });
+        ui.attachment.setOnClickListener(v -> previewAttachment());
+        bindChoice(ui.qwenChoice, LocalModel.QWEN);
+        bindChoice(ui.smolChoice, LocalModel.SMOL);
+        bindChoice(ui.gemmaChoice, LocalModel.GEMMA);
         ui.sendButton.setOnClickListener(v -> {
             if (generating) {
                 operation.set(true);
@@ -117,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
             @Override public void afterTextChanged(Editable s) {}
         });
 
-        initialPanel();
         updateControls();
         String preferred = preferences.getString("model", "");
         for (LocalModel model : LocalModel.values()) {
@@ -128,9 +138,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initialPanel() {
-        panel("Set up your offline assistant", getString(R.string.get_started_detail),
-                "Choose a model", this::chooseModel);
+    private void bindChoice(ModelChoiceBinding tile, LocalModel model) {
+        tile.choiceName.setText(model.title);
+        tile.choiceSize.setText(model.size);
+        tile.choiceDetail.setText(model.description);
+        tile.getRoot().setContentDescription(model.title + ", " + model.size + ", " + model.description);
+        tile.getRoot().setOnClickListener(v -> modelDetails(model, false));
     }
 
     private void chooseModel() {
@@ -144,19 +157,20 @@ public class MainActivity extends AppCompatActivity {
                     option.isInstalled(models) ? "Downloaded" : option.description);
         }
         new MaterialAlertDialogBuilder(this).setTitle("Choose a model")
-                .setItems(labels, (dialog, which) -> modelDetails(options[which]))
+                .setItems(labels, (dialog, which) -> modelDetails(options[which], true))
                 .setNegativeButton("Close", null)
                 .show();
     }
 
-    private void modelDetails(LocalModel model) {
+    private void modelDetails(LocalModel model, boolean fromPicker) {
         boolean installed = model.isInstalled(models);
         boolean partial = new File(models, model.fileIn(models).getName() + ".part").isFile();
         MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(this).setTitle(model.title)
                 .setMessage(model.description + "\n\n" + (installed
                         ? "Stored on this device. You can use it offline."
                         : model.size + " download from Hugging Face. Wi-Fi is recommended."))
-                .setNegativeButton("Back", (d, w) -> chooseModel());
+                .setNegativeButton(fromPicker ? "Back" : "Cancel",
+                        fromPicker ? (d, w) -> chooseModel() : null);
         if (activeModel != model) {
             dialog.setPositiveButton(installed ? "Use model" : partial ? "Resume" : "Download",
                     (d, w) -> prepare(model));
@@ -176,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                     if (wasActive) {
                         activeModel = null;
                         preferences.edit().remove("model").apply();
-                        initialPanel();
+                        ui.modelPanel.setVisibility(View.GONE);
                     }
                     modelBusy = true;
                     updateControls();
@@ -286,24 +300,52 @@ public class MainActivity extends AppCompatActivity {
                 }).setNegativeButton("Cancel", null).show();
     }
 
+    private void chooseAttachment(boolean summarize) {
+        suggestSummary = summarize;
+        picker.launch(AttachmentReader.TYPES);
+    }
+
+    private void previewAttachment() {
+        AttachmentReader source = attachment;
+        if (source == null) return;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(source.name)
+                .setMessage(source.excerpt ? "Excerpt sent with your prompt\n\n" + source.text : source.text)
+                .setNegativeButton("Remove file", (dialog, which) -> {
+                    attachment = null;
+                    attachmentNotice = null;
+                    updateControls();
+                })
+                .setPositiveButton("Done", null)
+                .show();
+    }
+
     private void readAttachment(Uri uri) {
-        if (uri == null || generating || modelBusy || reading) return;
+        boolean fillSummary = suggestSummary;
+        suggestSummary = false;
+        if (uri == null || generating || reading) return;
         reading = true;
+        attachmentNotice = getString(R.string.reading_attachment);
         updateControls();
-        WORKER.execute(() -> {
+        fileWorker.execute(() -> {
             try {
-                AttachmentReader result = AttachmentReader.read(getContentResolver(), uri);
+                AttachmentReader result = AttachmentReader.read(this, uri);
                 post(() -> {
                     reading = false;
-                    if (result.text.isEmpty()) toast("No readable text found in that file.");
-                    else attachment = result;
+                    attachmentNotice = null;
+                    attachment = result;
+                    if (fillSummary && ui.prompt.getText().toString().trim().isEmpty()) {
+                        ui.prompt.setText(R.string.summarize_prompt);
+                        ui.prompt.setSelection(ui.prompt.length());
+                    }
                     updateControls();
                 });
-            } catch (Exception e) {
+            } catch (AttachmentReader.ReadFailure e) {
                 post(() -> {
                     reading = false;
+                    attachmentNotice = attachment == null ? e.getMessage()
+                            : getString(R.string.kept_attachment, e.getMessage());
                     updateControls();
-                    toast("Could not read that file. Try a text file, PDF, or clear photo of text.");
                 });
             }
         });
@@ -313,11 +355,12 @@ public class MainActivity extends AppCompatActivity {
         String question = ui.prompt.getText().toString().trim();
         if (activeModel == null || question.isEmpty() || modelBusy || reading || generating) return;
         AttachmentReader source = attachment;
-        String input = source == null ? question : question + "\n\nAttachment excerpt:\n" + source.text;
+        String input = source == null ? question : "Attachment excerpt:\n---\n" + source.text
+                + "\n---\n\nRequest: " + question;
         String instruction = academic
-                ? "Explain in an academic style. State uncertainty and do not invent citations."
-                : "Give a clear, practical answer. Say when you do not know.";
-        if (source != null) instruction += " Treat the attachment as reference text.";
+                ? "You are an academic assistant. Explain clearly and use only citations you know."
+                : "You are a helpful assistant. Answer clearly and directly.";
+        if (source != null) instruction += " Use the attachment as source material.";
         String systemInstruction = instruction;
         int maxOutput = expandedReply ? 512 : 256;
         AtomicBoolean stopped = new AtomicBoolean();
@@ -334,18 +377,21 @@ public class MainActivity extends AppCompatActivity {
         ui.prompt.clearFocus();
         updateControls();
         ui.chatScroll.scrollTo(0, 0);
+        ReplyStream stream = new ReplyStream(stopped);
         WORKER.execute(() -> {
             String error = null;
             try {
-                inference.reply(systemInstruction, input, maxOutput, stopped, text -> post(() -> {
-                    reply.append(text);
-                    ui.answer.setText(reply.toString());
-                }));
+                inference.reply(systemInstruction, input, maxOutput, stopped, stream);
+            } catch (TimeoutException e) {
+                error = "The model stopped responding. Try sending the prompt again.";
             } catch (Exception | LinkageError e) {
                 error = "Could not generate a reply. Try a shorter question or remove the attachment.";
             }
             String result = error;
-            post(() -> finishReply(stopped.get(), result, question));
+            post(() -> {
+                stream.finish();
+                finishReply(stopped.get(), result, question);
+            });
         });
     }
 
@@ -365,13 +411,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateControls() {
         boolean ready = activeModel != null && !modelBusy && !reading;
+        boolean firstRun = activeModel == null;
+        boolean showOptions = firstRun && !modelBusy && ui.modelPanel.getVisibility() != View.VISIBLE;
+        ui.setupModels.setVisibility(showOptions ? View.VISIBLE : View.GONE);
+        ui.introKicker.setText(firstRun ? R.string.offline_setup : R.string.ready_kicker);
+        ui.introTitle.setText(firstRun ? R.string.hero_title : R.string.ready_title);
+        ui.introDetail.setText(firstRun ? R.string.hero_detail : R.string.ready_detail);
+        ui.fileShortcut.setVisibility(ready && !generating && attachment == null
+                && ui.intro.getVisibility() == View.VISIBLE
+                ? View.VISIBLE : View.GONE);
         ui.composer.setVisibility(activeModel == null ? View.GONE : View.VISIBLE);
         ui.setupFooter.setVisibility(activeModel == null ? View.VISIBLE : View.GONE);
         ui.modelsButton.setEnabled(!modelBusy && !generating && !reading);
         ui.modelsButton.setText(activeModel == null ? getString(R.string.models) : activeModel.title);
-        ui.prompt.setEnabled(ready && !generating);
+        ui.prompt.setEnabled(activeModel != null && !modelBusy && !generating);
         ui.attachButton.setEnabled(ready && !generating);
-        ui.attachButton.setText(reading ? "Reading…" : getString(R.string.attach));
+        ui.attachButton.setText(R.string.attach);
         ui.modeButton.setEnabled(ready && !generating);
         ui.modeButton.setText(academic ? "Academic" : getString(R.string.assistant_mode));
         ui.sendButton.setText(generating ? operation.get() ? "Stopping…" : "Stop" : getString(R.string.send));
@@ -379,10 +434,58 @@ public class MainActivity extends AppCompatActivity {
                 ready && !ui.prompt.getText().toString().trim().isEmpty());
         ui.attachment.setEnabled(ready && !generating);
         ui.attachment.setVisibility(attachment == null ? View.GONE : View.VISIBLE);
+        ui.attachmentNotice.setVisibility(attachmentNotice == null ? View.GONE : View.VISIBLE);
+        ui.attachmentNotice.setText(attachmentNotice);
         if (attachment != null) {
-            ui.attachment.setText(getString(attachment.excerpt ? R.string.remove_excerpt_label
-                    : R.string.remove_attachment_label, attachment.name));
-            ui.attachment.setContentDescription("Remove attachment " + attachment.name);
+            ui.attachment.setText(getString(R.string.attachment_label, attachment.name));
+            ui.attachment.setContentDescription(getString(R.string.attachment_preview, attachment.name));
+        }
+    }
+
+    /** Render the first chunk immediately, then combine chunks that arrive before the next redraw. */
+    private final class ReplyStream implements Consumer<String> {
+        private static final long RENDER_INTERVAL_MS = 64;
+        private final AtomicBoolean request;
+        private final StringBuilder pending = new StringBuilder();
+        private final Runnable renderPending = this::render;
+        private boolean first = true;
+        private boolean queued;
+        private boolean closed;
+
+        ReplyStream(AtomicBoolean request) {
+            this.request = request;
+        }
+
+        @Override
+        public synchronized void accept(String text) {
+            if (closed || text.isEmpty()) return;
+            pending.append(text);
+            if (!queued) {
+                queued = true;
+                mainHandler.postDelayed(renderPending, first ? 0 : RENDER_INTERVAL_MS);
+                first = false;
+            }
+        }
+
+        private void render() {
+            String chunk;
+            synchronized (this) {
+                chunk = pending.toString();
+                pending.setLength(0);
+                queued = false;
+            }
+            if (!chunk.isEmpty() && operation == request && !isFinishing() && !isDestroyed()) {
+                reply.append(chunk);
+                ui.answer.setText(reply.toString());
+            }
+        }
+
+        void finish() {
+            synchronized (this) {
+                closed = true;
+            }
+            mainHandler.removeCallbacks(renderPending);
+            render();
         }
     }
 
@@ -397,8 +500,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(@NonNull Bundle state) {
+        state.putBoolean(SUMMARY_SHORTCUT, suggestSummary);
+        super.onSaveInstanceState(state);
+    }
+
+    @Override
     protected void onDestroy() {
         operation.set(true);
+        fileWorker.shutdownNow();
+        mainHandler.removeCallbacksAndMessages(null);
         WORKER.execute(inference::close);
         super.onDestroy();
     }

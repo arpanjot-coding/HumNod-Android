@@ -67,20 +67,58 @@
                 android:paddingTop="14dp">
 
                 <TextView
+                    android:id="@+id/intro_kicker"
                     style="@style/HumNod.Kicker"
-                    android:text="@string/your_device" />
+                    android:text="@string/offline_setup" />
 
                 <TextView
+                    android:id="@+id/intro_title"
                     style="@style/HumNod.Title"
                     android:layout_marginTop="8dp"
                     android:text="@string/hero_title"
-                    android:textSize="35sp" />
+                    android:textSize="34sp" />
 
                 <TextView
+                    android:id="@+id/intro_detail"
                     style="@style/HumNod.Muted"
                     android:layout_marginTop="8dp"
                     android:text="@string/hero_detail" />
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/setup_models"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:orientation="vertical">
+
+                <include
+                    android:id="@+id/qwen_choice"
+                    layout="@layout/model_choice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <include
+                    android:id="@+id/smol_choice"
+                    layout="@layout/model_choice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp" />
+
+                <include
+                    android:id="@+id/gemma_choice"
+                    layout="@layout/model_choice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/file_shortcut"
+                style="@style/HumNod.OutlineButton"
+                android:layout_marginTop="12dp"
+                android:text="@string/summarize_file"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:id="@+id/model_panel"
@@ -89,7 +127,8 @@
                 android:layout_marginTop="22dp"
                 android:background="@drawable/panel_humnod"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/model_title"
@@ -140,10 +179,24 @@
                     android:saveEnabled="false"
                     android:textIsSelectable="true" />
 
-                <TextView
-                    style="@style/HumNod.Kicker"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="22dp"
-                    android:text="@string/app_name" />
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        style="@style/HumNod.Kicker"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/app_name" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/copy_button"
+                        style="@style/HumNod.OutlineButton"
+                        android:text="@string/copy_reply"
+                        android:visibility="gone" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/answer"
@@ -152,12 +205,6 @@
                     android:saveEnabled="false"
                     android:textIsSelectable="true" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/copy_button"
-                    style="@style/HumNod.OutlineButton"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/copy_reply"
-                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
@@ -179,6 +226,15 @@
             style="@style/HumNod.OutlineButton"
             android:ellipsize="end"
             android:maxLines="1"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/attachment_notice"
+            style="@style/HumNod.Muted"
+            android:accessibilityLiveRegion="polite"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp"
+            android:textSize="13sp"
             android:visibility="gone" />
 
         <EditText

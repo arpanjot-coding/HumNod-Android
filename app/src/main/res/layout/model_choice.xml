@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/panel_humnod"
+    android:clickable="true"
+    android:clipToOutline="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/choice_name"
+            style="@style/HumNod.Title"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:importantForAccessibility="no"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/choice_size"
+            style="@style/HumNod.Kicker"
+            android:layout_width="wrap_content"
+            android:layout_marginStart="8dp"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/choice_detail"
+        style="@style/HumNod.Muted"
+        android:layout_marginTop="4dp"
+        android:importantForAccessibility="no"
+        android:textSize="14sp" />
+</LinearLayout>

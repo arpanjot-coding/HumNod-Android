@@ -34,6 +34,9 @@ final class ModelDownloader {
         }
         requireSpace(directory, model.bytes - offset);
         checkCancelled(cancelled);
+        MessageDigest digest = newDigest();
+        byte[] buffer = new byte[BUFFER_SIZE];
+        if (offset > 0) hashExisting(partial, digest, buffer, cancelled);
         if (offset < model.bytes) {
             HttpURLConnection connection = (HttpURLConnection) new URL(model.url).openConnection();
             connection.setConnectTimeout(15_000);
@@ -45,6 +48,7 @@ final class ModelDownloader {
                 if (status == HttpURLConnection.HTTP_OK) {
                     // A server can ignore a Range request. Replace the partial file in that case.
                     offset = 0;
+                    digest.reset();
                 } else if (status != HttpURLConnection.HTTP_PARTIAL || offset == 0 ||
                         !("bytes " + offset + "-" + (model.bytes - 1) + "/" + model.bytes)
                                 .equals(connection.getHeaderField("Content-Range"))) {
@@ -57,7 +61,6 @@ final class ModelDownloader {
                 }
                 try (InputStream input = connection.getInputStream();
                      FileOutputStream output = new FileOutputStream(partial, offset > 0)) {
-                    byte[] buffer = new byte[BUFFER_SIZE];
                     long received = offset;
                     int previous = -1;
                     int read;
@@ -67,6 +70,7 @@ final class ModelDownloader {
                             throw new IOException("The download exceeded the expected size.");
                         }
                         output.write(buffer, 0, read);
+                        digest.update(buffer, 0, read);
                         received += read;
                         int percent = (int) (100 * received / model.bytes);
                         if (percent != previous) progress.accept(percent);
@@ -83,7 +87,7 @@ final class ModelDownloader {
         }
         checkCancelled(cancelled);
         verifying.run();
-        if (!model.sha256.equals(sha256(partial, cancelled))) {
+        if (!model.sha256.equals(toHex(digest.digest()))) {
             remove(partial);
             throw new IOException("The model failed verification. Retry to download a fresh copy.");
         }
@@ -114,23 +118,28 @@ final class ModelDownloader {
         if (cancelled.get()) throw new InterruptedIOException("Download paused.");
     }
 
-    private static String sha256(File file, AtomicBoolean cancelled) throws IOException {
-        MessageDigest digest;
+    private static MessageDigest newDigest() {
         try {
-            digest = MessageDigest.getInstance("SHA-256");
+            return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new AssertionError(e);
         }
+    }
+
+    private static void hashExisting(File file, MessageDigest digest, byte[] buffer,
+                                     AtomicBoolean cancelled) throws IOException {
         try (InputStream input = new FileInputStream(file)) {
-            byte[] buffer = new byte[BUFFER_SIZE];
             int count;
             while ((count = input.read(buffer)) != -1) {
                 checkCancelled(cancelled);
                 digest.update(buffer, 0, count);
             }
         }
+    }
+
+    private static String toHex(byte[] digest) {
         StringBuilder hex = new StringBuilder(64);
-        for (byte value : digest.digest()) {
+        for (byte value : digest) {
             hex.append(Character.forDigit((value & 0xf0) >> 4, 16));
             hex.append(Character.forDigit(value & 0x0f, 16));
         }

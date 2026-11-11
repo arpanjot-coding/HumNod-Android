@@ -10,11 +10,17 @@ android {
         applicationId = "ai.humnod.genai.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 7
-        versionName = "2.0"
+        versionCode = 8
+        versionName = "2.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = false
         }
     }
 
@@ -36,4 +42,5 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("com.itextpdf:kernel:7.2.3")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
 }
